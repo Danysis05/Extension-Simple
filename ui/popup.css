@@ -1,0 +1,31 @@
+body {
+    width: 400px;
+    padding: 10px;
+    font-family: Arial;
+}
+
+.click-item {
+    border-bottom: 1px solid #ccc;
+    padding: 8px;
+    margin: 5px 0;
+    word-wrap: break-word;
+}
+
+.timestamp {
+    color: #666;
+    font-size: 11px;
+}
+
+.btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    margin: 5px 0;
+}
+
+.url {
+    font-size: 11px;
+    color: #0066cc;
+}
