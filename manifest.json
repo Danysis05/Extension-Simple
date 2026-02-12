@@ -1,24 +1,33 @@
 {
-   "name" : "Logs Simple",
-   "version": "1.0",
-   "description": "Generador de seguimientos de usuarios mediante logs",
-   "manifest_version": 3,
-
-    "permissions": [
+  "manifest_version": 3,
+  "name": "Capturador de Clics",
+  "version": "1.0",
+  "permissions": [
     "storage",
+    "scripting",
+    "webNavigation",
     "tabs",
-    "alarms",
-    "webRequest"
+    "downloads"
   ],
   "host_permissions": [
-    "http://localhost:4200/*"
+    "https://pagosimple.com/"
   ],
-  
-   "icons": {
-        "16": "icons/logo.png"
-   },
-   "action": {
-    "default_popup": "ui/index.html",
-    "default_title": "Logs Simple"
-   }
-}   
+  "background": {
+    "service_worker": "scripts/background.js"
+  },
+  "action": {
+    "default_popup": "ui/popup.html",
+    "default_icon": {
+      "16": "icons/logo.png",
+      "48": "icons/logo.png",
+      "128": "icons/logo.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://pagosimple.com/"],
+      "js": ["scripts/content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
