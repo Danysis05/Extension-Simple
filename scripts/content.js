@@ -1,6 +1,28 @@
+function enviarMensajeSeguro(data) {
+    try {
+        if (!chrome.runtime?.id) return;
+
+        chrome.runtime.sendMessage(
+            {
+                action: 'guardarClick',
+                data: data
+            },
+            () => {
+                if (chrome.runtime.lastError) {
+                    // Evita que explote cuando el contexto se invalida
+                    console.warn("Mensaje no enviado:", chrome.runtime.lastError.message);
+                }
+            }
+        );
+    } catch (error) {
+        console.warn("Extensión no disponible:", error);
+    }
+}
+
+
 // Escuchar todos los clics en la página
 document.addEventListener('click', function (event) {
-    // Obtener información detallada del clic
+
     const clickData = {
         url: window.location.href,
         title: document.title,
@@ -18,26 +40,26 @@ document.addEventListener('click', function (event) {
         tipo: 'click'
     };
 
-    // Enviar al background script
-    chrome.runtime.sendMessage({
-        action: 'guardarClick',
-        data: clickData
-    });
+    enviarMensajeSeguro(clickData);
+
 }, true);
 
-// También capturar clics en elementos específicos
+
+// Capturar clic derecho
 document.addEventListener('mousedown', function (event) {
-    if (event.button === 2) { // Clic derecho
+
+    if (event.button === 2) {
+
         const clickDerecho = {
             url: window.location.href,
             timestamp: new Date().toISOString(),
             tipo: 'click_derecho',
-            target: event.target.tagName
+            target: {
+                tagName: event.target.tagName
+            }
         };
 
-        chrome.runtime.sendMessage({
-            action: 'guardarClick',
-            data: clickDerecho
-        });
+        enviarMensajeSeguro(clickDerecho);
     }
+
 }, true);
