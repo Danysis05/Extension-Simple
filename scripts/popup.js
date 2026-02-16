@@ -7,57 +7,87 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Botón limpiar
     document.getElementById('clearBtn').addEventListener('click', limpiarClics);
 });
+// función para acortar las urls
+function acortarURL(url){
+    if(url == null || url == ""){
+        return console.log("url no encontrada")
+    }
+    const urlshort = new URL(url);
+    return urlshort.hostname + urlshort.pathname;
 
+}
 async function cargarClics() {
-    const result = await chrome.storage.local.get(['clicks']);
-    const clicks = result.clicks || [];
+    const [{ clicks = [] }, { usuarioActual }] = await Promise.all([
+        chrome.storage.local.get(['clicks']),
+        chrome.storage.local.get(['usuarioActual'])
+    ]);
+
+    const username = usuarioActual || 'Usuario desconocido';
     const clicksList = document.getElementById('clicksList');
 
     clicksList.innerHTML = '';
-    clicks.reverse().forEach(click => {
-        const div = document.createElement('div');
-        div.className = 'click-item';
 
-        let contenido = `
-            <div class="timestamp">
-                ${new Date(click.timestampInicio || click.timestamp).toLocaleString()}
-            </div>
-            <div><strong>${click.tipo || 'click'}</strong></div>
-            <div class="url">${click.url || ''}</div>
-        `;
-        if (click.requests && click.requests.length > 0) {
-            contenido += `<div style="margin-top:8px;"><strong>Peticiones HTTP:</strong></div>`;
-
-            click.requests.forEach(req => {
-                contenido += `
-                    <div style="margin-left:10px; font-size:12px; border-left:2px solid #ccc; padding-left:6px; margin-bottom:6px;">
-                        <div><strong>${req.method}</strong> (${req.type})</div>
-                        <div>Status: ${req.statusCode}</div>
-                        <div class="url">${req.url}</div>
-                    </div>
-                `;
-            });
-        }
-
-
-
-        if (click.target) {
-            contenido += `<div>Elemento: ${click.target.tagName}</div>`;
-            if (click.target.text) {
-                contenido += `<div>Texto: ${click.target.text}</div>`;
-            }
-            if (click.target.id) {
-                contenido += `<div>ID: ${click.target.id}</div>`;
-            }
-            if (click.x) {
-                contenido += `<div>Posición: X:${click.x}, Y:${click.y}</div>`;
-            }
-        }
-  
-        div.innerHTML = contenido;
-        clicksList.appendChild(div);
+    [...clicks].reverse().forEach(click => {
+        const card = crearCard(click, username);
+        clicksList.appendChild(card);
     });
 }
+function crearCard(click, username) {
+    const div = document.createElement('div');
+    div.className = 'click-card';
+
+    div.innerHTML = `
+        <div class="card-header">
+            <span class="timestamp">
+                ${new Date(click.timestampInicio || click.timestamp).toLocaleString()}
+            </span>
+            <span class="user">Usuario: ${username}</span>
+        </div>
+
+        <div class="card-body">
+            <div class="tipo">${click.tipo || 'click'}</div>
+            <div class="url-corta">${acortarURL(click.url)}</div>
+
+            <details>
+                <summary>Ver detalles</summary>
+                <div class="url-completa">${click.url || ''}</div>
+                ${renderRequests(click.requests)}
+                ${renderTarget(click.target, click)}
+            </details>
+        </div>
+    `;
+
+    return div;
+}
+function renderRequests(requests = []) {
+    if (!requests.length) return '';
+
+    return `
+        <div class="requests">
+            <h4>Peticiones HTTP</h4>
+            ${requests.map(req => `
+                <div class="request-item">
+                    <div><strong>${req.method}</strong> (${req.type})</div>
+                    <div>Status: ${req.statusCode}</div>
+                    <div class="small-url">${req.url}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+function renderTarget(target, click) {
+    if (!target) return '';
+
+    return `
+        <div class="target-info">
+            <div>Elemento: ${target.tagName}</div>
+            ${target.text ? `<div>Texto: ${target.text}</div>` : ''}
+            ${target.id ? `<div>ID: ${target.id}</div>` : ''}
+            ${click.x ? `<div>Posicion: X:${click.x}, Y:${click.y}</div>` : ''}
+        </div>
+    `;
+}
+
 
 function exportarClics() {
     chrome.storage.local.get(['clicks'], (result) => {

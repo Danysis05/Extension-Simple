@@ -129,3 +129,12 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.local.set({ clicks: [] });
 });
+
+chrome.runtime.onMessage.addListener((message) => {
+
+    if (message.action === 'guardarUsuario') {
+        chrome.storage.local.set({ usuarioActual: message.nombre });
+    }
+
+});
+

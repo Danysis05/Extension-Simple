@@ -10,7 +10,7 @@ function enviarMensajeSeguro(data) {
             () => {
                 if (chrome.runtime.lastError) {
                     // Evita que explote cuando el contexto se invalida
-                    console.warn("Mensaje no enviado:", chrome.runtime.lastError.message);
+                    console.log("Mensaje no enviado:", chrome.runtime.lastError.message);
                 }
             }
         );
@@ -18,6 +18,7 @@ function enviarMensajeSeguro(data) {
         console.warn("Extensión no disponible:", error);
     }
 }
+
 
 
 // Escuchar todos los clics en la página
@@ -63,3 +64,23 @@ document.addEventListener('mousedown', function (event) {
     }
 
 }, true);
+// acceder al usuario logueado
+function detectarUsuario() {
+    const userElement = document.querySelector('.access-User p strong');
+
+    if (userElement) {
+        const nombre = userElement.textContent.trim();
+        console.log("Usuario encontrado:", nombre);
+
+        chrome.runtime.sendMessage({
+            action: 'guardarUsuario',
+            nombre: nombre
+        });
+    } else {
+        console.log("No se encontró el usuario");
+    }
+}
+
+window.addEventListener('load', () => {
+    setTimeout(detectarUsuario, 1500);
+});
